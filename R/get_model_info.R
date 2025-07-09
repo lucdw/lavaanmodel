@@ -1,12 +1,18 @@
 # extract info from model
 get_model_info <- function(model = NULL, infile = NULL) {
+  edge_label <- function(label, fix) {
+    if (label == "" && fix == "") return("")
+    if (label == "") return(fix)
+    if (fix == "") return(label)
+    return(paste(label, fix, sep = ":"))
+  }
   if (!is.null(infile)) {
     stopifnot(file.exists(infile))
     model <- readLines(infile)
   }
   if (is.list(model) && !is.null(model$op) && !is.null(model$lhs) &&
-      !is.null(model$rhs) && !is.null(model$label) &&
-      !is.null(model$fixed)) {
+        !is.null(model$rhs) && !is.null(model$label) &&
+        !is.null(model$fixed)) {
     tbl <- as.data.frame(model)
   } else if (is.character(model)) {
     tbl <- lavParseModelString(model.syntax = model,
@@ -19,25 +25,19 @@ get_model_info <- function(model = NULL, infile = NULL) {
   } else {
     if (all(tbl$block == tbl$block[1L])) tbl$block <- 0L
   }
-  lvs <- unique(tbl$lhs[tbl$op == "=~" | tbl$op == "<~"])
-  indicators <- unique(tbl$rhs[tbl$op == "=~" | tbl$op == "<~"])
-  regdest <- unique(tbl$lhs[tbl$op == "~" | tbl$op == "~1"])
-  regsrc <-  unique(tbl$rhs[tbl$op == "~" | tbl$op == "~1"])
-  vars <- unique(tbl$lhs[tbl$op == "~~" & tbl$lhs == tbl$rhs])
-  covars <- union(tbl$lhs[tbl$op == "~~" & tbl$lhs != tbl$rhs],
-                  tbl$rhs[tbl$op == "~~" & tbl$lhs != tbl$rhs])
   maxedges <- nrow(tbl)
   maxnodes <- 2 * maxedges
   nodes <- data.frame(
     id = integer(maxnodes),
     naam = character(maxnodes),
     tiepe = character(maxnodes), # ov, lv, cv, wov, bov, const
-            # cv: composite; wov = within; bov = between; const = intercept
+    # cv: composite; wov = within; bov = between; const = intercept
     blok = integer(maxnodes),
     voorkeur = character(maxnodes), # l = links, r = rechts, m = midden
     indicatoren = integer(maxnodes),
     rij = integer(maxnodes),
-    kolom = integer(maxnodes)
+    kolom = integer(maxnodes),
+    tmp = character(maxnodes)
   )
   edges <- data.frame(
     id = integer(maxedges),
@@ -52,7 +52,7 @@ get_model_info <- function(model = NULL, infile = NULL) {
     if (tbl$op[i] == "=~") {
       #### =~ : is manifested by ####
       # lhs node
-      jl <- match(tbl$lhs[i], nodes$naam, nomatch = 0L)
+      jl <-match(paste(tbl$block[i], tbl$lhs[i]), nodes$tmp, nomatch = 0L)
       if (jl == 0L) {
         curnode <- curnode + 1L
         jl <- curnode
@@ -60,11 +60,12 @@ get_model_info <- function(model = NULL, infile = NULL) {
         nodes$naam[curnode] <- tbl$lhs[i]
         nodes$tiepe[curnode] <- "lv"
         nodes$blok[curnode] <- tbl$block[i]
+        nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
       } else {
         nodes$tiepe[jl] <- "lv"
       }
       # rhs node
-      jr <- match(tbl$rhs[i], nodes$naam, nomatch = 0L)
+      jr <-match(paste(tbl$block[i], tbl$rhs[i]), nodes$tmp, nomatch = 0L)
       nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
       if (is.null(nodetype)) nodetype <- "ov"
       if (jr == 0L) {
@@ -74,20 +75,21 @@ get_model_info <- function(model = NULL, infile = NULL) {
         nodes$naam[curnode] <- tbl$rhs[i]
         nodes$tiepe[curnode] <- nodetype
         nodes$blok[curnode] <- tbl$block[i]
+        nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
       } else {
         if (nodes$tiepe[jr] == "") nodes$tiepe[jr] <- nodetype
       }
       # edge
       curedge <- curedge + 1L
       edges$id[curedge] <- curedge
-      edges$label[curedge] <- paste(tbl$label[i], tbl$fixed[i])
+      edges$label[curedge] <- edge_label(tbl$label[i], tbl$fixed[i])
       edges$van[curedge] <- jl
       edges$naar[curedge] <- jr
       edges$tiepe[curedge] <- "p"
     } else if (tbl$op[i] == "<~") {
       #### <~ : is a result of ####
       # lhs node
-      jl <- match(tbl$lhs[i], nodes$naam, nomatch = 0L)
+      jl <-match(paste(tbl$block[i], tbl$lhs[i]), nodes$tmp, nomatch = 0L)
       if (jl == 0L) {
         curnode <- curnode + 1L
         jl <- curnode
@@ -95,11 +97,12 @@ get_model_info <- function(model = NULL, infile = NULL) {
         nodes$naam[curnode] <- tbl$lhs[i]
         nodes$tiepe[curnode] <- "cv"
         nodes$blok[curnode] <- tbl$block[i]
+        nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
       } else {
         nodes$tiepe[jl] <- "cv"
       }
       # rhs node
-      jr <- match(tbl$rhs[i], nodes$naam, nomatch = 0L)
+      jr <-match(paste(tbl$block[i], tbl$rhs[i]), nodes$tmp, nomatch = 0L)
       nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
       if (is.null(nodetype)) nodetype <- "ov"
       if (jr == 0L) {
@@ -109,20 +112,21 @@ get_model_info <- function(model = NULL, infile = NULL) {
         nodes$naam[curnode] <- tbl$rhs[i]
         nodes$tiepe[curnode] <- nodetype
         nodes$blok[curnode] <- tbl$block[i]
+        nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
       } else {
         if (nodes$tiepe[jr] == "") nodes$tiepe[jr] <- nodetype
       }
       # edge
       curedge <- curedge + 1L
       edges$id[curedge] <- curedge
-      edges$label[curedge] <- paste(tbl$label[i], tbl$fixed[i])
+      edges$label[curedge] <- edge_label(tbl$label[i], tbl$fixed[i])
       edges$van[curedge] <- jr
       edges$naar[curedge] <- jl
       edges$tiepe[curedge] <- "p"
     } else if (tbl$op[i] == "~") {
       #### ~ : is regressed on ####
       # lhs node
-      jl <- match(tbl$lhs[i], nodes$naam, nomatch = 0L)
+      jl <-match(paste(tbl$block[i], tbl$lhs[i]), nodes$tmp, nomatch = 0L)
       nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
       if (is.null(nodetype)) nodetype <- "ov"
       if (jl == 0L) {
@@ -132,6 +136,7 @@ get_model_info <- function(model = NULL, infile = NULL) {
         nodes$naam[curnode] <- tbl$lhs[i]
         nodes$tiepe[curnode] <- nodetype
         nodes$blok[curnode] <- tbl$block[i]
+        nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
         nodes$voorkeur[curnode] <- "r"
       } else {
         if (nodes$tiepe[jl] == "") nodes$tiepe[jl] <- nodetype
@@ -142,7 +147,7 @@ get_model_info <- function(model = NULL, infile = NULL) {
         }
       }
       # rhs node
-      jr <- match(tbl$rhs[i], nodes$naam, nomatch = 0L)
+      jr <-match(paste(tbl$block[i], tbl$rhs[i]), nodes$tmp, nomatch = 0L)
       if (jr == 0L) {
         curnode <- curnode + 1L
         jr <- curnode
@@ -150,6 +155,7 @@ get_model_info <- function(model = NULL, infile = NULL) {
         nodes$naam[curnode] <- tbl$rhs[i]
         nodes$tiepe[curnode] <- nodetype
         nodes$blok[curnode] <- tbl$block[i]
+        nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
         nodes$voorkeur[curnode] <- "l"
       } else {
         if (nodes$tiepe[jr] == "") nodes$tiepe[jr] <- nodetype
@@ -162,14 +168,14 @@ get_model_info <- function(model = NULL, infile = NULL) {
       # edge
       curedge <- curedge + 1L
       edges$id[curedge] <- curedge
-      edges$label[curedge] <- paste(tbl$label[i], tbl$fixed[i])
+      edges$label[curedge] <- edge_label(tbl$label[i], tbl$fixed[i])
       edges$van[curedge] <- jr
       edges$naar[curedge] <- jl
       edges$tiepe[curedge] <- "p"
     } else if (tbl$op[i] == "~1") {
       #### ~1 : intercept ####
       # lhs node
-      jl <- match(tbl$lhs[i], nodes$naam, nomatch = 0L)
+      jl <-match(paste(tbl$block[i], tbl$lhs[i]), nodes$tmp, nomatch = 0L)
       nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
       if (is.null(nodetype)) nodetype <- "ov"
       if (jl == 0L) {
@@ -179,6 +185,7 @@ get_model_info <- function(model = NULL, infile = NULL) {
         nodes$naam[curnode] <- tbl$lhs[i]
         nodes$tiepe[curnode] <- nodetype
         nodes$blok[curnode] <- tbl$block[i]
+        nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
         nodes$voorkeur[curnode] <- "r"
       } else {
         if (nodes$tiepe[jl] == "") nodes$tiepe[jl] <- nodetype
@@ -196,18 +203,19 @@ get_model_info <- function(model = NULL, infile = NULL) {
       nodes$naam[curnode] <- "1"
       nodes$tiepe[curnode] <- "const"
       nodes$blok[curnode] <- tbl$block[i]
+      nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
       nodes$voorkeur[curnode] <- "l"
       # edge
       curedge <- curedge + 1L
       edges$id[curedge] <- curedge
-      edges$label[curedge] <- paste(tbl$label[i], tbl$fixed[i])
+      edges$label[curedge] <- edge_label(tbl$label[i], tbl$fixed[i])
       edges$van[curedge] <- jr
       edges$naar[curedge] <- jl
       edges$tiepe[curedge] <- "p"
     } else if (tbl$op[i] == "~~") {
       #### ~~ : is correlated with ####
       # lhs node
-      jl <- match(tbl$lhs[i], nodes$naam, nomatch = 0L)
+      jl <-match(paste(tbl$block[i], tbl$lhs[i]), nodes$tmp, nomatch = 0L)
       nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
       if (is.null(nodetype)) nodetype <- "ov"
       if (jl == 0L) {
@@ -217,11 +225,12 @@ get_model_info <- function(model = NULL, infile = NULL) {
         nodes$naam[curnode] <- tbl$lhs[i]
         nodes$tiepe[curnode] <- nodetype
         nodes$blok[curnode] <- tbl$block[i]
+        nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
       } else {
         if (nodes$tiepe[jl] == "") nodes$tiepe[jl] <- nodetype
       }
       # rhs node
-      jr <- match(tbl$rhs[i], nodes$naam, nomatch = 0L)
+      jr <-match(paste(tbl$block[i], tbl$rhs[i]), nodes$tmp, nomatch = 0L)
       if (jr == 0L) {
         curnode <- curnode + 1L
         jr <- curnode
@@ -229,25 +238,28 @@ get_model_info <- function(model = NULL, infile = NULL) {
         nodes$naam[curnode] <- tbl$rhs[i]
         nodes$tiepe[curnode] <- nodetype
         nodes$blok[curnode] <- tbl$block[i]
+        nodes$tmp[curnode] <- paste(nodes$blok[curnode], nodes$naam[curnode])
       } else {
         if (nodes$tiepe[jr] == "") nodes$tiepe[jr] <- nodetype
       }
       # edge
       curedge <- curedge + 1L
       edges$id[curedge] <- curedge
-      edges$label[curedge] <- paste(tbl$label[i], tbl$fixed[i])
+      edges$label[curedge] <- edge_label(tbl$label[i], tbl$fixed[i])
       edges$van[curedge] <- jr
       edges$naar[curedge] <- jl
-      edges$tiepe[curedge] <- ifelse(jl==jr, "s", "d")
+      edges$tiepe[curedge] <- ifelse(jl == jr, "s", "d")
     }
   }
   latents <- nodes$id[nodes$tiepe == "lv" | nodes$tiepe == "cv"]
   for (j in latents) {
-    nodes$indicatoren[j] = sum(tbl$lhs == nodes$naam[j] & (
-      tbl$op == "=~" | tbl$op == "<~"))
+    nodes$indicatoren[j] <- sum(tbl$lhs == nodes$naam[j] &
+                                  (tbl$op == "=~" | tbl$op == "<~"))
   }
+  nodes$tmp <- NULL
+  nodes$voorkeur[nodes$voorkeur == "" & nodes$tiepe == "lv"] <- "m"
   nodes <- nodes[seq.int(curnode), ]
   edges <- edges[seq.int(curedge), ]
   edges$label <- trimws(edges$label)
-  return(list(nodes=nodes, edges=edges))
+  return(list(nodes = nodes, edges = edges))
 }

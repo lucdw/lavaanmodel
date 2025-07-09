@@ -1,38 +1,33 @@
-\name{show_diagram}
-\alias{show_diagram}
-\title{Show a diagram in an R-plot}
+\name{make_tikz}
+\alias{make_tikz}
+\title{Creates diagram code for tikz}
 \usage{
-show_diagram(nodes, edges)
+make_tikz(nodes, edges, cex = 1.1, outfile = NULL)
 }
 \arguments{
 \item{nodes}{The nodes data.frame as returned from position_nodes}
 \item{edges}{The edges data.frame as returned from get_model_info}
+\item{cex}{Minimum distance between nodes in cm.}
+\item{outfile}{Where to write the result.}
 }
 \value{
-NULL (invisible)}
+A character array - invisible - with the generated code.
+}
 \description{
-Shows a simple diagram of the model as an R-plot.
+Creates the code to make a tikz diagram in tikz.
 }
 \examples{
 model <- 'alpha  =~ x_1 + x_2 + x_3     # latent variable
           beta <~ x_4 + x_5 + x_6      # composite
           gamma =~ x_7 + x_8 + x_9     # latent variable
           Xi =~ x_10 + x_11 + x_12 + x_13  # latent variable
+          x_4 ~~ vx4 * x_4
+          x_7 ~~ x_9
           # regressions
           Xi ~ v * alpha + t * beta + 1
           alpha ~ yy * Theta_1 + tt * beta + ss * gamma
           '
 test <- get_model_info(model)
 nodes <- position_nodes(test$nodes, test$edges)
-show_diagram(nodes, test$edges)
-modelml <- '
-        level: 1
-        fw =~ y1 + y2 + y3 + y4
-        level: 2
-        fb =~ y1 + y2 + y3 + y4
-        y2 ~~ cv24 * y4
-  '
-testml <- get_model_info(modelml)
-nodesml <- position_nodes(testml$nodes, testml$edges)
-show_diagram(nodesml, testml$edges)
+tikzcode <- make_tikz(nodes, test$edges)
 }
