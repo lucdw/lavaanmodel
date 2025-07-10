@@ -66,8 +66,9 @@ get_model_info <- function(model = NULL, infile = NULL) {
       }
       # rhs node
       jr <-match(paste(tbl$block[i], tbl$rhs[i]), nodes$tmp, nomatch = 0L)
-      nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
-      if (is.null(nodetype)) nodetype <- "ov"
+      nodetype <- "ov"
+      if (length(unique(tbl$block[tbl$rhs == tbl$rhs[i]])) > 1L)
+        nodetype <- switch(tbl$block[i], "wov", "bov")
       if (jr == 0L) {
         curnode <- curnode + 1L
         jr <- curnode
@@ -103,8 +104,9 @@ get_model_info <- function(model = NULL, infile = NULL) {
       }
       # rhs node
       jr <-match(paste(tbl$block[i], tbl$rhs[i]), nodes$tmp, nomatch = 0L)
-      nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
-      if (is.null(nodetype)) nodetype <- "ov"
+      nodetype <- "ov"
+      if (length(unique(tbl$block[tbl$rhs == tbl$rhs[i]])) > 1L)
+        nodetype <- switch(tbl$block[i], "wov", "bov")
       if (jr == 0L) {
         curnode <- curnode + 1L
         jr <- curnode
@@ -127,8 +129,9 @@ get_model_info <- function(model = NULL, infile = NULL) {
       #### ~ : is regressed on ####
       # lhs node
       jl <-match(paste(tbl$block[i], tbl$lhs[i]), nodes$tmp, nomatch = 0L)
-      nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
-      if (is.null(nodetype)) nodetype <- "ov"
+      nodetype <- "ov"
+      if (length(unique(tbl$block[tbl$rhs == tbl$rhs[i]])) > 1L)
+        nodetype <- switch(tbl$block[i], "wov", "bov")
       if (jl == 0L) {
         curnode <- curnode + 1L
         jl <- curnode
@@ -176,8 +179,10 @@ get_model_info <- function(model = NULL, infile = NULL) {
       #### ~1 : intercept ####
       # lhs node
       jl <-match(paste(tbl$block[i], tbl$lhs[i]), nodes$tmp, nomatch = 0L)
-      nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
-      if (is.null(nodetype)) nodetype <- "ov"
+      nodetype <- "ov"
+      if (length(unique(tbl$block[tbl$rhs == tbl$lhs[i] |
+                                  tbl$lhs == tbl$lhs[i]])) > 1L)
+        nodetype <- switch(tbl$block[i], "wov", "bov")
       if (jl == 0L) {
         curnode <- curnode + 1L
         jl <- curnode
@@ -216,8 +221,10 @@ get_model_info <- function(model = NULL, infile = NULL) {
       #### ~~ : is correlated with ####
       # lhs node
       jl <-match(paste(tbl$block[i], tbl$lhs[i]), nodes$tmp, nomatch = 0L)
-      nodetype <- switch(tbl$block[i] + 1L, "ov", "wov", "bov")
-      if (is.null(nodetype)) nodetype <- "ov"
+      nodetype <- "ov"
+      if (length(unique(tbl$block[tbl$rhs == tbl$lhs[i] |
+                                  tbl$lhs == tbl$lhs[i]])) > 1L)
+        nodetype <- switch(tbl$block[i], "wov", "bov")
       if (jl == 0L) {
         curnode <- curnode + 1L
         jl <- curnode
@@ -231,6 +238,10 @@ get_model_info <- function(model = NULL, infile = NULL) {
       }
       # rhs node
       jr <-match(paste(tbl$block[i], tbl$rhs[i]), nodes$tmp, nomatch = 0L)
+      nodetype <- "ov"
+      if (length(unique(tbl$block[tbl$rhs == tbl$lhs[i] |
+                                  tbl$lhs == tbl$lhs[i]])) > 1L)
+        nodetype <- switch(tbl$block[i], "wov", "bov")
       if (jr == 0L) {
         curnode <- curnode + 1L
         jr <- curnode
@@ -260,6 +271,7 @@ get_model_info <- function(model = NULL, infile = NULL) {
   nodes$voorkeur[nodes$voorkeur == "" & nodes$tiepe == "lv"] <- "m"
   nodes <- nodes[seq.int(curnode), ]
   edges <- edges[seq.int(curedge), ]
+  nodes$voorkeur[nodes$voorkeur == "" & nodes$tiepe == "lv"] <- "l"
   edges$label <- trimws(edges$label)
   return(list(nodes = nodes, edges = edges))
 }

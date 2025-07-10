@@ -2,7 +2,7 @@
 \alias{create_tikz}
 \title{Creates diagram code for tikz}
 \usage{
-create_tikz(model, infile = NULL, allowbottom = FALSE, cex = 1.1, outfile = NULL)
+create_tikz(model, infile = NULL, allowbottom = FALSE, cex = 1.25, outfile = NULL)
 }
 \arguments{
 \item{model}{A character vector specifying the model in lavaan syntax or a list
@@ -35,4 +35,12 @@ model <- 'alpha_11  =~ 1 * x_1 + x_2 + x_3     # latent variable
           alpha_11 ~ yy * Theta_1 + tt_1 * 0.11234 * alpha_12 + ss * gamma
           '
 tikzcode <- create_tikz(model)
+modelml <- '
+        level: 1
+        fw =~ y_1 + y_2 + y_3 + y_4
+        level: 2
+        fb =~ y_1 + y_2 + y_3 + y_5
+        y_2 ~~ cv24 * y_5
+  '
+tikzcodeml <- create_tikz(modelml)
 }

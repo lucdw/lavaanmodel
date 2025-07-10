@@ -27,10 +27,10 @@ nodes <- position_nodes(test$nodes, test$edges)
 show_diagram(nodes, test$edges)
 modelml <- '
         level: 1
-        fw =~ y1 + y2 + y3 + y4
+        fw =~ 1*y_1 + y_2 + y_3 + y_5
         level: 2
-        fb =~ y1 + y2 + y3 + y4
-        y2 ~~ cv24 * y4
+        fb =~ 1*y_1 + y_2 + y_3 + y_4
+        y_2 ~~ cv24 * y_4
   '
 testml <- get_model_info(modelml)
 nodesml <- position_nodes(testml$nodes, testml$edges)

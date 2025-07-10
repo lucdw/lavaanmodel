@@ -12,6 +12,7 @@ position_nodes <- function(nodes, edges, allowbottom = FALSE) {
     nodes2$blok <- 1L
     nodes <- rbind(nodes1, nodes2)
     attr(nodes, "mlrij") <- rijen1 +1L
+    return(nodes)
   }
   # structural part
   maxindicatoren <- max(nodes$indicatoren)

@@ -2,7 +2,7 @@
 \alias{make_tikz}
 \title{Creates diagram code for tikz}
 \usage{
-make_tikz(nodes, edges, cex = 1.1, outfile = NULL)
+make_tikz(nodes, edges, cex = 1.25, outfile = NULL)
 }
 \arguments{
 \item{nodes}{The nodes data.frame as returned from position_nodes}
