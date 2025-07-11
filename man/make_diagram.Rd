@@ -1,17 +1,18 @@
-\name{show_diagram}
-\alias{show_diagram}
-\title{Show a diagram in an R-plot}
+\name{make_diagram}
+\alias{make_diagram}
+\title{Creates code to show a diagram in an R-plot via package diagram}
 \usage{
-show_diagram(nodes, edges)
+make_diagram(nodes, edges, outfile = "")
 }
 \arguments{
 \item{nodes}{The nodes data.frame as returned from position_nodes}
 \item{edges}{The edges data.frame as returned from get_model_info}
+\item{outfile}{A connection or a character string naming the file to print to.}
 }
 \value{
 NULL (invisible)}
 \description{
-Shows a simple diagram of the model as an R-plot.
+Create R code to show a simple diagram of the model as an R-plot.
 }
 \examples{
 model <- 'alpha  =~ x_1 + x_2 + x_3     # latent variable
@@ -24,7 +25,7 @@ model <- 'alpha  =~ x_1 + x_2 + x_3     # latent variable
           '
 test <- get_model_info(model)
 nodes <- position_nodes(test$nodes, test$edges)
-show_diagram(nodes, test$edges)
+make_diagram(nodes, test$edges)
 modelml <- '
         level: 1
         fw =~ 1*y_1 + y_2 + y_3 + y_5
@@ -34,5 +35,5 @@ modelml <- '
   '
 testml <- get_model_info(modelml)
 nodesml <- position_nodes(testml$nodes, testml$edges)
-show_diagram(nodesml, testml$edges)
+make_diagram(nodesml, testml$edges)
 }

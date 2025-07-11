@@ -1,4 +1,4 @@
-make_tikz <- function(nodes, edges, cex = 1.25, outfile = NULL) {
+make_tikz <- function(nodes, edges, cex = 1.75, outfile = NULL) {
   latexsymbols <- c(
     "varGamma", "varSigma", "varDelta", "varUpsilon", "varTheta", "varPhi",
     "varLambda", "varPsi", "varXi", "varOmega", "varPi",
@@ -9,7 +9,10 @@ make_tikz <- function(nodes, edges, cex = 1.25, outfile = NULL) {
     "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi", "rho",
     "sigma", "tau", "upsilon", "phi", "chi", "psi", "omega"
   )
-  nodenaam <- function(nm, blk) {gsub("_", "", paste0("B", blk, nm))}
+  nodenaam <- function(nm, blk) {
+    if (blk > 0L) return(gsub("_", "", paste0("B", blk, nm)))
+    return(gsub("_", "", nm))
+    }
   nodelabel <- function(nm) {
     if (nm == "") return("")
     startnm <- strsplit(nm, "_", fixed = TRUE)[[1L]][1L]
@@ -55,11 +58,7 @@ make_tikz <- function(nodes, edges, cex = 1.25, outfile = NULL) {
   }
   for (j in seq.int(nrow(nodes))) {
     xpos <- nodes$kolom[j]
-    if (nodes$kolom[j] == 1) xpos <- 0.5
-    if (nodes$kolom[j] == maxcol) xpos <- maxcol + 0.5
     ypos <- maxrij - nodes$rij[j]
-    if (nodes$rij[j] == 1) ypos <- maxrij - 0.5
-    if (nodes$rij[j] == maxrij) ypos <- -0.5
     writeLines(paste(
       "\\node[", nodes$tiepe[j], "] (", nodenaam(nodes$naam[j], nodes$blok[j]),
       ") at (", xpos, ",", ypos, ") {",

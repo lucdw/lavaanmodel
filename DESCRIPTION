@@ -7,7 +7,7 @@ Authors@R: c(
   role = c("aut", "cre"),
   email = "Luc.DeWilde@UGent.be"))
 Maintainer: Luc De Wilde <luc.dewilde@ugent.be>
-Depends: R (>= 3.1.0), lavaan, diagram
+Depends: R (>= 3.1.0), lavaan
 Description: This package takes as input a sem model in lavaan syntax or the 
   resulting model description as list or as data.frame. It can produce a diagram
   in html or pdf with the diagram package or the necessary code to incorporate

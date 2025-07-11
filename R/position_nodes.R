@@ -1,5 +1,18 @@
+delta_node_edge <- function(edgevan, edgenaar, node) {
+  van <- edgevan - node
+  naar <- edgenaar - node
+  if (van[1L] * naar[2L] - van[2L] * naar[1L] == 0) return(0)
+  discr <- solve(matrix(c(van, naar), nrow=2, byrow=TRUE))
+  a <- sum(discr[1L, ])
+  b <- sum(discr[2L, ])
+  return(1/sqrt(a*a + b*b))
+}
+delta_nodes <- function(node1, node2) {
+  delta <- node2 - node1
+  sqrt(sum(delta*delta))
+}
 position_nodes <- function(nodes, edges, allowbottom = FALSE) {
-  if (any(nodes$blok > 0L)) {
+  if (any(nodes$blok > 0L)) { # multilevel, only level:1 and level:2 accepted
     nodes1 <- nodes[nodes$blok == 2L, ]
     nodes1$blok <- 0L
     nodes2 <- nodes[nodes$blok == 1L, ]
@@ -11,19 +24,19 @@ position_nodes <- function(nodes, edges, allowbottom = FALSE) {
     nodes1$blok <- 2L
     nodes2$blok <- 1L
     nodes <- rbind(nodes1, nodes2)
-    attr(nodes, "mlrij") <- rijen1 +1L
+    attr(nodes, "mlrij") <- rijen1 + 1L
     return(nodes)
   }
   # structural part
-  maxindicatoren <- max(nodes$indicatoren)
   strucs <- which(nodes$voorkeur == "l")
+  maxindicatoren <- max(nodes$indicatoren[strucs])
   nodes$rij[strucs] <- 2L + seq.int(length(strucs)) * maxindicatoren
   nodes$kolom[strucs] <- 2L
   strucs <- which(nodes$voorkeur == "r")
+  maxindicatoren <- max(nodes$indicatoren[strucs])
   nodes$rij[strucs] <- 2L + seq.int(length(strucs)) * maxindicatoren
   nodes$kolom[strucs] <- 99L
   if (any(nodes$voorkeur == "m")) {
-    strucs <- which(nodes$voorkeur == "m")
     if (length(strucs) > 1L && allowbottom) {
       vanaf <- integer(length(strucs) / 2)
       nodes$voorkeur[strucs[seq.int(vanaf, length(strucs))]] <- "b"
@@ -31,11 +44,13 @@ position_nodes <- function(nodes, edges, allowbottom = FALSE) {
   }
   if (any(nodes$voorkeur == "m")) {
     strucs <- which(nodes$voorkeur == "m")
+    maxindicatoren <- max(nodes$indicatoren[strucs])
     nodes$kolom[strucs] <- 2L + seq.int(length(strucs)) * maxindicatoren
     nodes$rij[strucs] <- 2L
   }
   if (any(nodes$voorkeur == "b")) {
     strucs <- which(nodes$voorkeur == "b")
+    maxindicatoren <- max(nodes$indicatoren[strucs])
     nodes$kolom[strucs] <- 2L + seq.int(length(strucs)) * maxindicatoren
     nodes$rij[strucs] <- 99L
   }

@@ -1,7 +1,6 @@
 importFrom("lavaan", "lavParseModelString")
-importFrom("diagram", "plotmat")
 export("get_model_info")
 export("make_tikz")
 export("position_nodes")
-export("show_diagram")
+export("make_diagram")
 export("create_tikz")

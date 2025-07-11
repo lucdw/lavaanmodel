@@ -2,7 +2,7 @@
 \alias{create_tikz}
 \title{Creates diagram code for tikz}
 \usage{
-create_tikz(model, infile = NULL, allowbottom = FALSE, cex = 1.25, outfile = NULL)
+create_tikz(model, infile = NULL, allowbottom = FALSE, cex = 1.75, outfile = NULL)
 }
 \arguments{
 \item{model}{A character vector specifying the model in lavaan syntax or a list

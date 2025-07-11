@@ -1,4 +1,4 @@
-show_diagram <- function(nodes, edges) {
+make_diagram <- function(nodes, edges, outfile = "") {
   A <- matrix(NA, nrow = nrow(nodes), ncol = nrow(nodes))
   rijen <- max(nodes$rij)
   kolommen <- max(nodes$kolom)
@@ -33,8 +33,17 @@ show_diagram <- function(nodes, edges) {
   }
   namen <- sub("_([[:digit:]]*)$", "[\\1]", nodes$naam)
   namen <- str2expression(namen)
-  plotmat(A, pos=pos, lwd=1, curve=0, box.lwd=2, cex.txt=0.8, box.col=boxcols,
-          name = namen, box.cex=0.8, box.size = boxsize, arr.length=0.2,
-          arr.pos = 0.55, box.type = boxtypes, shadow.size = 0,
-          nr = 3, main="SEM diagram", box.prop = 1, self.cex = 0.4)
+  cat(
+  "library(diagram)\n",
+  "A <- ", deparse(A), "\n",
+  "pos <- ", deparse(pos), "\n",
+  "boxcols <- ", deparse(boxcols), "\n",
+  "namen <- ", deparse(namen), "\n",
+  "boxtypes <- ", deparse(boxtypes), "\n",
+  "plotmat(A, pos=pos, lwd=1, curve=0, box.lwd=2, cex.txt=0.8, box.col=boxcols,\n",
+  "        name = namen, box.cex=0.8, box.size = ", boxsize, ",arr.length=0.2,\n",
+  "        arr.pos = 0.55, box.type = boxtypes, shadow.size = 0,\n",
+  "        nr = 3, main='SEM diagram', box.prop = 1, self.cex = 0.4)\n",
+  sep = "", file = outfile)
+  return(invisible(NULL))
 }
