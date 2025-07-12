@@ -29,5 +29,9 @@ model <- 'alpha  =~ x_1 + x_2 + x_3     # latent variable
           '
 test <- get_model_info(model)
 nodes <- position_nodes(test$nodes, test$edges)
+print(nodes)
+nodes$kolom[19L] <- 2 # move Theta_1 one position to the left
+print(test$edges)
+test$edges$labelbelow[19L] <- TRUE # label of arrow below the line
 tikzcode <- make_tikz(nodes, test$edges)
 }

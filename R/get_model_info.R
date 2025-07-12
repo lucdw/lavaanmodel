@@ -35,8 +35,8 @@ get_model_info <- function(model = NULL, infile = NULL) {
     blok = integer(maxnodes),
     voorkeur = character(maxnodes), # l = links, r = rechts, m = midden
     indicatoren = integer(maxnodes),
-    rij = integer(maxnodes),
-    kolom = integer(maxnodes),
+    rij = rep(NA_integer_, maxnodes),
+    kolom = rep(NA_integer_, maxnodes),
     tmp = character(maxnodes)
   )
   edges <- data.frame(
@@ -44,7 +44,8 @@ get_model_info <- function(model = NULL, infile = NULL) {
     label = character(maxedges),
     van = integer(maxedges),
     naar = integer(maxedges),
-    tiepe = character(maxedges) # p = pijl, d = dubbele pijl, s = self
+    tiepe = character(maxedges), # p = pijl, d = dubbele pijl, s = self
+    labelbelow = rep(FALSE, maxedges)
   )
   curnode <- 0L
   curedge <- 0L

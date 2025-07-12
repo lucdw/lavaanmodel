@@ -33,7 +33,7 @@ make_tikz <- function(nodes, edges, cex = 1.75, outfile = NULL) {
     "\\usepackage{xcolor}",
     "\\usepackage{color}",
     "\\usepackage{tikz}")
-  commstyle <- paste0("draw, minimum size=", round(7 * cex), "mm, semithick")
+  commstyle <- paste0("draw, minimum size=", round(6 * cex), "mm, semithick")
   tikzstart <- c(
     "\\usetikzlibrary {shapes.geometric}",
     "\\tikzset{",
@@ -125,7 +125,11 @@ make_tikz <- function(nodes, edges, cex = 1.75, outfile = NULL) {
         }
       }
       thelabel <- nodelabel(edges$label[j])
-      if (thelabel != "") thelabel <- paste0("node[above, sloped] {", thelabel, "} ")
+      if (thelabel != "") {
+        thelabel <- paste0("node[" ,
+                           ifelse(edges$labelbelow[j], "below", "above"),
+                           ",sloped] {", thelabel, "} ")
+      }
       pijl <- ifelse(edges$tiepe[j] == "p", "->", "<->")
       writeLines(paste("\\path[", pijl, "] (", vannaam, anchorv, ") edge",
                 bending, thelabel, "(", naarnaam, anchorn, ");", sep = ""), zz)
